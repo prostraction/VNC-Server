@@ -1,7 +1,7 @@
 #include "Control.h"
 
 void MouseMove(int x, int y) {
-	SetCursorPos(x, y);
+	//SetCursorPos(x, y);
 }
 void MouseClick(int button) {
 	

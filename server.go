@@ -179,24 +179,53 @@ func handleRequest(conn net.Conn) {
     // ServerInit
     SendServerInit(conn)
 
+    //var LastOperation byte = 0
+    LastFrameBufferUpdateRequest := make([]byte, 10)
     for {
         reqLen, err = conn.Read(buf)
         PrintBufferRaw(err, reqLen, buf)
         if buf[0] == 3 {
             fmt.Println("FramebufferUpdateRequest")
-            FramebufferUpdateRequest(buf[0:10], conn)
+            //FramebufferUpdateRequest(buf[0:10], conn)
+            buf[2] = 0
+            buf[3] = 0
+            buf[4] = 0
+            buf[5] = 0
+            buf[6] = serverInit.width[1]
+            buf[7] = serverInit.width[0]
+            buf[8] = serverInit.height[1]
+            buf[9] = serverInit.height[0]
+            LastFrameBufferUpdateRequest = buf[0:10]
+
         }
         if buf[0] == 5 {
+            // Button Released
+            //if LastOperation != buf[1] {
+            //
+            //          }
+            // mouse move
             if buf[1] == 0 {
                 x := binary.BigEndian.Uint16(buf[2:4])
                 y := binary.BigEndian.Uint16(buf[4:6])
                 C.MouseMove(C.int(x), C.int(y))
+                //FramebufferUpdateRequest(LastFrameBufferUpdateRequest, conn)
             }
+            // left click mouse
+            if buf[1] == 1 {
+                x := binary.BigEndian.Uint16(buf[2:4])
+                y := binary.BigEndian.Uint16(buf[4:6])
+                C.MouseMove(C.int(x), C.int(y))
+                //FramebufferUpdateRequest(LastFrameBufferUpdateRequest, conn)
+            }
+
+
         }
+
         if err == io.EOF {
             conn.Close()
             return
         }
+        FramebufferUpdateRequest(LastFrameBufferUpdateRequest, conn)
     }
 
     // Close the connection when you're done with it.
@@ -238,10 +267,10 @@ func FramebufferUpdateRequest(buf [] byte, conn net.Conn) {
 
     fmt.Println(buf)
 
-    x := binary.BigEndian.Uint16(buf[2:4])
-    y := binary.BigEndian.Uint16(buf[4:6])
-    width := binary.BigEndian.Uint16(buf[6:8])
-    height := binary.BigEndian.Uint16(buf[8:10])
+    x := 0
+    y := 0
+    width := 1920
+    height := 1080
     fmt.Println("x = ", x, " y = ", y, " width = ", width, " height = ", height)
 
     var length C.int = C.int(width) * C.int(height) * C.int(4)//C.getPointerSize(C.int(x), C.int(y), C.int(width), C.int(height))
@@ -255,11 +284,11 @@ func FramebufferUpdateRequest(buf [] byte, conn net.Conn) {
         FramebufferUpdate[1] = 0
         FramebufferUpdate[2] = 0
         FramebufferUpdate[3] = 1
-        binary.BigEndian.PutUint16(FramebufferUpdate[4:6], x)
-        binary.BigEndian.PutUint16(FramebufferUpdate[6:8], y)
+        binary.BigEndian.PutUint16(FramebufferUpdate[4:6], 0)
+        binary.BigEndian.PutUint16(FramebufferUpdate[6:8], 0)
         // error here type 15
-        binary.BigEndian.PutUint16(FramebufferUpdate[8:10], width)
-        binary.BigEndian.PutUint16(FramebufferUpdate[10:12], height)
+        binary.BigEndian.PutUint16(FramebufferUpdate[8:10], 1920)
+        binary.BigEndian.PutUint16(FramebufferUpdate[10:12], 1080)
         FramebufferUpdate[12] = 0
         FramebufferUpdate[13] = 0
         FramebufferUpdate[14] = 0
@@ -288,7 +317,7 @@ func FramebufferUpdateRequest(buf [] byte, conn net.Conn) {
         C.free(unsafe.Pointer(pointer))
         pointer = nil
 
-        fmt.Print("100001 \n ")
+        fmt.Print("1004001 \n ")
     } else {
         fmt.Println("POINTER == NIL!!!!!")
     }
