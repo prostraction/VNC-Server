@@ -4,12 +4,10 @@ package main
     #cgo LDFLAGS: -lgdi32
     #cgo CFLAGS: -Wall -Werror -fpic -mwindows -O1 -g
     #include "src/Image.c"
+    #include "src/Control.c"
 */
 import "C"
 import (
-    "bytes"
-    "compress/flate"
-    "compress/zlib"
     "encoding/binary"
     "fmt"
     "github.com/go-gl/glfw/v3.3/glfw"
@@ -188,6 +186,13 @@ func handleRequest(conn net.Conn) {
             fmt.Println("FramebufferUpdateRequest")
             FramebufferUpdateRequest(buf[0:10], conn)
         }
+        if buf[0] == 5 {
+            if buf[1] == 0 {
+                x := binary.BigEndian.Uint16(buf[2:4])
+                y := binary.BigEndian.Uint16(buf[4:6])
+                C.MouseMove(C.int(x), C.int(y))
+            }
+        }
         if err == io.EOF {
             conn.Close()
             return
@@ -258,7 +263,7 @@ func FramebufferUpdateRequest(buf [] byte, conn net.Conn) {
         FramebufferUpdate[12] = 0
         FramebufferUpdate[13] = 0
         FramebufferUpdate[14] = 0
-        FramebufferUpdate[15] = 6
+        FramebufferUpdate[15] = 0
         // error here type 65
 
         fmt.Print("FramebufferUpdate: ")
@@ -266,24 +271,24 @@ func FramebufferUpdateRequest(buf [] byte, conn net.Conn) {
         conn.Write(FramebufferUpdate)
 
 
-        var b bytes.Buffer
-        w, _ := zlib.NewWriterLevelDict(&b, flate.DefaultCompression, nil)
-        w.Write(slice)
-        w.Close()
-        conn.Write([]byte(string(len(b.Bytes()))))
-        _, err := conn.Write(b.Bytes())
+        //var b bytes.Buffer
+        //w, _ := zlib.NewWriterLevelDict(&b, flate.DefaultCompression, nil)
+        //w.Write(slice)
+        //w.Close()
+        //conn.Write([]byte(string(len(b.Bytes()))))
+        //_, err := conn.Write(b.Bytes())
 
-        fmt.Println([]byte(string(len(b.Bytes()))))
-        fmt.Println(len(b.Bytes()))
+        //fmt.Println([]byte(string(len(b.Bytes()))))
+        //fmt.Println(len(b.Bytes()))
 
-        //_, err := conn.Write(slice)
+        _, err := conn.Write(slice)
         fmt.Println(err)
 
         slice = nil
         C.free(unsafe.Pointer(pointer))
         pointer = nil
 
-        fmt.Print(" . . . . . .  .  \n ")
+        fmt.Print("100001 \n ")
     } else {
         fmt.Println("POINTER == NIL!!!!!")
     }
