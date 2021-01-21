@@ -88,7 +88,7 @@ unsigned char* screenCapture(int x, int y, int w, int h)
 	else {
 		unsigned int val = (cursor_pos.y * w * 4)  + (cursor_pos.x * 4);
 		
-			for (int i = 0; i < 300; i++) {
+			for (int i = 0; i < 30; i++) {
 				for (int j = 0; j < i; j++) {
 					if (val < w * h * 4) {
 						dib[val+j] = 0xAA;
@@ -106,7 +106,7 @@ unsigned char* screenCapture(int x, int y, int w, int h)
 				}
 				val += w*4;
 			}
-		printf("%ld %ld\n", cursor_pos.x, cursor_pos.y);
+		//printf("%ld %ld\n", cursor_pos.x, cursor_pos.y);
 	}
 	//free(cursor_pos);
 	
